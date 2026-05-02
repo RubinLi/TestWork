@@ -28,7 +28,7 @@ class TestArgparse:
                                 "--files", "f1",
                                 "--report", "Clickbate"]):
             files, report = argparsess(["Clickbate"])
-            assert files == ["f1"] and report == ["Clickbate"]
+            assert files == ["f1"] and report == "Clickbate"
 
     def test_error_argparses_values_report(self, capsys):
 
@@ -60,7 +60,7 @@ class Testfiles_exists():
 class TestCSVread:
     # TODO: Проверка обработки исключений через логер, или проброс ошибок в стиле
     # wrap.
-    DATA_DIR = Path(__file__).resolve().parent.parent / "files"
+    DATA_DIR = Path(__file__).resolve().parent.parent.joinpath("files")
     FIELD_TYPE = {'title': str, 'ctr': float, 'retention_rate': float}
     FIELD_NO_FOUND = {'error_field': str,
                       'ctr': float, 'retention_rate': float}
@@ -71,7 +71,7 @@ class TestCSVread:
     def test_read_csc_file(self):
         likes = '0'
         list_of_video: list | None = self.clickbate._read_csv_file(
-            file_csv_patch=self.DATA_DIR / 'stats1.csv', fieldtype=self.FIELD_TYPE)
+            file_csv_patch=self.DATA_DIR.joinpath('stats1.csv'), fieldtype=self.FIELD_TYPE)
         print(list_of_video)
         if list_of_video:
             for video_info in list_of_video:
@@ -81,17 +81,17 @@ class TestCSVread:
 
     def test_error_csv_files_nofound(self, capsys):
         None_file = self.clickbate._read_csv_file(
-            file_csv_patch=self.DATA_DIR/'NotFound.csv', fieldtype=self.FIELD_TYPE)
+            file_csv_patch=self.DATA_DIR.joinpath('NotFound.csv'), fieldtype=self.FIELD_TYPE)
         assert None_file is None
 
     def test_error_csv_field_nofound(self, capfd):
         None_file = self.clickbate._read_csv_file(
-            file_csv_patch=self.DATA_DIR/'stats1.csv', fieldtype=self.FIELD_NO_FOUND)
+            file_csv_patch=self.DATA_DIR.joinpath('stats1.csv'), fieldtype=self.FIELD_NO_FOUND)
         assert None_file is None
 
     def test_error_csv_field_type_conver(self, capfd):
         None_file = self.clickbate._read_csv_file(
-            file_csv_patch=self.DATA_DIR/'stats1.csv', fieldtype=self.FIELD_TYPE_ERROR)
+            file_csv_patch=self.DATA_DIR.joinpath('stats1.csv'), fieldtype=self.FIELD_TYPE_ERROR)
         assert None_file is None
 
 
@@ -113,7 +113,8 @@ class TestClicbatefiltersuccess():
 
     def test_extract_from_files(self):
         result = self.clickbate._extract_from_files(
-            [self.DATA_DIR/'stats1.csv', self.DATA_DIR/'stats2.csv']
+            [self.DATA_DIR.joinpath('stats1.csv'),
+             self.DATA_DIR.joinpath('stats2.csv')]
         )
         find0 = list(filter(lambda d: "в 5 утра" in d.get("title"), result))
         find1 = list(filter(lambda d: "4" in d.get("title"), result))
