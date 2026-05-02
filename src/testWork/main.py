@@ -53,8 +53,7 @@ def argparsess(logic) -> tuple[list, str]:
     """
     str_args_files_help: str = "Имена csv-файлов с метриками видео на YouTube (может быть несколько)"
     str_args_report_help: str = "Тип отчёта, отвечает за логикy расчётов"
-    str_prog_info: str = "cli приложение для обработки csv-файлов метрик YouTube видео"
-
+    str_prog_info: str = "testWork"
     parser = argparse.ArgumentParser(
         prog=str_prog_info)
     parser.add_argument('-f',
