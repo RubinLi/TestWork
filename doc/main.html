@@ -44,13 +44,113 @@
   <section id="module-main">
 <span id="main-module"></span><h1>main module<a class="headerlink" href="#module-main" title="Ссылка на этот заголовок">¶</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="main.Settings">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">Settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'logfile.log'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#Settings"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Settings" title="Ссылка на это определение">¶</a></dt>
-<dd><p>Базовые классы: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Класс для хранения настроек утилиты.</p>
+<dt class="sig sig-object py" id="main.Clickbait">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">Clickbait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">above_ctr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">below_retention_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#Clickbait"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Clickbait" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Базовые классы: <a class="reference internal" href="#main.Logic" title="main.Logic"><code class="xref py py-class docutils literal notranslate"><span class="pre">Logic</span></code></a></p>
+<p>Класс работающий с информацией о видео  привлекающих внимание</p>
 <p>…</p>
 <section id="id1">
 <h2>Атрибуты<a class="headerlink" href="#id1" title="Ссылка на этот заголовок">¶</a></h2>
+<dl>
+<dt>fieldtype<span class="classifier">dict</span></dt><dd><p>словарь хранящий список полей для оценки
+привлекательности видео, и соответствующие функции
+для приведения значений полей к типу, подходящему для oценки.
+Пример:</p>
+<p>fieldtype = {„title“: int, „ctr“: float, „retention_rate“: float}</p>
+</dd>
+<dt>above_ctr: float</dt><dd><p>нижнее значение кликабельности</p>
+</dd>
+<dt>below_retention_rate: float</dt><dd><p>Верхнее значение удержания</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="main.Clickbait.report_from_files">
+<span class="sig-name descname"><span class="pre">report_from_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#Clickbait.report_from_files"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Clickbait.report_from_files" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Подготавливает данные из файлов для генерации отчета</p>
+<section id="id2">
+<h3>Параметры<a class="headerlink" href="#id2" title="Ссылка на этот заголовок">¶</a></h3>
+<dl class="simple">
+<dt>data: files</dt><dd><p>список путей к файлам.</p>
+</dd>
+<dt>final_date<span class="classifier">List</span></dt><dd><p>подготовленные данные</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main.Clickbait.report_table">
+<span class="sig-name descname"><span class="pre">report_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/main.html#Clickbait.report_table"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Clickbait.report_table" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Подготавливает данные из файлов для генерации отчета</p>
+<section id="id3">
+<h3>Параметры<a class="headerlink" href="#id3" title="Ссылка на этот заголовок">¶</a></h3>
+<dl class="simple">
+<dt>data: files</dt><dd><p>список путей к файлам.</p>
+</dd>
+<dt>final_date<span class="classifier">List</span></dt><dd><p>подготовленные данные</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="main.Logic">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">Logic</span></span><a class="reference internal" href="_modules/main.html#Logic"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Logic" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Базовые классы: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="main.Logic.report_from_files">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">report_from_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/main.html#Logic.report_from_files"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Logic.report_from_files" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main.Logic.report_table">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">report_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/main.html#Logic.report_table"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Logic.report_table" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="main.Report">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">Report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logic</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#Report"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Report" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Базовые классы: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Класс представляет интерфейс для работы с логикой отчетов.</p>
+<section id="id4">
+<h2>Атрибуты<a class="headerlink" href="#id4" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="simple">
+<dt>logic<span class="classifier">Logic</span></dt><dd><p>Класс представляющий логику генерации отчетов</p>
+</dd>
+<dt>data: list</dt><dd><p>Обработанные в рамках генерации отчета данные.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="main.Report.report_data_from_files">
+<span class="sig-name descname"><span class="pre">report_data_from_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#Report.report_data_from_files"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Report.report_data_from_files" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main.Report.report_table">
+<span class="sig-name descname"><span class="pre">report_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/main.html#Report.report_table"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Report.report_table" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main.Report.report_text">
+<span class="sig-name descname"><span class="pre">report_text</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/main.html#Report.report_text"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Report.report_text" title="Ссылка на это определение">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="main.Settings">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">Settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'testwork.log'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#Settings"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.Settings" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Базовые классы: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Класс для хранения настроек утилиты.</p>
+<p>…</p>
+<section id="id5">
+<h2>Атрибуты<a class="headerlink" href="#id5" title="Ссылка на этот заголовок">¶</a></h2>
 <dl class="simple">
 <dt>log_file<span class="classifier">str</span></dt><dd><p>Путь к файлу журналирования</p>
 </dd>
@@ -61,9 +161,47 @@
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="main.inc">
-<span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">inc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#inc"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.inc" title="Ссылка на это определение">¶</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="main.argparsess">
+<span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">argparsess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logic</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/main.html#argparsess"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.argparsess" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Разбирает аргументы командой строки</p>
+<section id="id6">
+<h2>Параметры<a class="headerlink" href="#id6" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="simple">
+<dt>lodic<span class="classifier">list</span></dt><dd><p>Список типов отчетов, содержащих логику расчетов.
+Используется для ограничения ввода пользователя,
+существующими типами отчетов.</p>
+</dd>
+</dl>
+</section>
+<section id="id7">
+<h2>Возвращаемое значение<a class="headerlink" href="#id7" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="simple">
+<dt>[list,str]<span class="classifier">tumple</span></dt><dd><p>Кортеж содержащий список файлов и тип отчёта.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="main.checking_files_exists">
+<span class="sig-prename descclassname"><span class="pre">main.</span></span><span class="sig-name descname"><span class="pre">checking_files_exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/main.html#checking_files_exists"><span class="viewcode-link"><span class="pre">[исходный</span> <span class="pre">код]</span></span></a><a class="headerlink" href="#main.checking_files_exists" title="Ссылка на это определение">¶</a></dt>
+<dd><p>Проверяет существование файлов</p>
+<section id="id8">
+<h2>Параметры<a class="headerlink" href="#id8" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="simple">
+<dt>files<span class="classifier">list</span></dt><dd><p>Список путей к файлам, для проверки существования</p>
+</dd>
+</dl>
+</section>
+<section id="id9">
+<h2>Возвращаемое значение<a class="headerlink" href="#id9" title="Ссылка на этот заголовок">¶</a></h2>
+<dl class="simple">
+<dt>Bool</dt><dd><p>Возвращает False если хотя бы один из файлов не существует
+Возвращает True  если все файлы существуют</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="main.main">
@@ -83,8 +221,25 @@
     <h3><a href="index.html">Оглавление</a></h3>
     <ul>
 <li><a class="reference internal" href="#">main module</a><ul>
+<li><a class="reference internal" href="#main.Clickbait"><code class="docutils literal notranslate"><span class="pre">Clickbait</span></code></a><ul>
+<li><a class="reference internal" href="#main.Clickbait.report_from_files"><code class="docutils literal notranslate"><span class="pre">Clickbait.report_from_files()</span></code></a></li>
+<li><a class="reference internal" href="#main.Clickbait.report_table"><code class="docutils literal notranslate"><span class="pre">Clickbait.report_table()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#main.Logic"><code class="docutils literal notranslate"><span class="pre">Logic</span></code></a><ul>
+<li><a class="reference internal" href="#main.Logic.report_from_files"><code class="docutils literal notranslate"><span class="pre">Logic.report_from_files()</span></code></a></li>
+<li><a class="reference internal" href="#main.Logic.report_table"><code class="docutils literal notranslate"><span class="pre">Logic.report_table()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#main.Report"><code class="docutils literal notranslate"><span class="pre">Report</span></code></a><ul>
+<li><a class="reference internal" href="#main.Report.report_data_from_files"><code class="docutils literal notranslate"><span class="pre">Report.report_data_from_files()</span></code></a></li>
+<li><a class="reference internal" href="#main.Report.report_table"><code class="docutils literal notranslate"><span class="pre">Report.report_table()</span></code></a></li>
+<li><a class="reference internal" href="#main.Report.report_text"><code class="docutils literal notranslate"><span class="pre">Report.report_text()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#main.Settings"><code class="docutils literal notranslate"><span class="pre">Settings</span></code></a></li>
-<li><a class="reference internal" href="#main.inc"><code class="docutils literal notranslate"><span class="pre">inc()</span></code></a></li>
+<li><a class="reference internal" href="#main.argparsess"><code class="docutils literal notranslate"><span class="pre">argparsess()</span></code></a></li>
+<li><a class="reference internal" href="#main.checking_files_exists"><code class="docutils literal notranslate"><span class="pre">checking_files_exists()</span></code></a></li>
 <li><a class="reference internal" href="#main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 </ul>
 </li>

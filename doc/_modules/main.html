@@ -38,7 +38,11 @@
             
   <h1>Исходный код main</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tabulate</span><span class="w"> </span><span class="kn">import</span> <span class="n">tabulate</span>
 
 
 <div class="viewcode-block" id="Settings">
@@ -54,44 +58,428 @@
 <span class="sd">    log_file : str</span>
 <span class="sd">        Путь к файлу журналирования</span>
 <span class="sd">    log_level : int</span>
-<span class="sd">        Уровень журналирования </span>
+<span class="sd">        Уровень журналирования</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-        <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;logfile.log&quot;</span><span class="p">,</span>
+        <span class="n">log_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s1">&#39;testwork.log&#39;</span><span class="p">,</span>
 
     <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log_level</span> <span class="o">=</span> <span class="n">log_level</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">log_file</span></div>
+        <span class="k">if</span> <span class="n">log_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workdir</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_file</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="argparsess">
+<a class="viewcode-back" href="../main.html#main.argparsess">[документация]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">argparsess</span><span class="p">(</span><span class="n">logic</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Разбирает аргументы командой строки</span>
+
+<span class="sd">    Параметры</span>
+<span class="sd">    ---------</span>
+<span class="sd">    lodic : list</span>
+<span class="sd">        Список типов отчетов, содержащих логику расчетов.</span>
+<span class="sd">        Используется для ограничения ввода пользователя,</span>
+<span class="sd">        существующими типами отчетов.</span>
+
+<span class="sd">    Возвращаемое значение</span>
+<span class="sd">    ---------------------</span>
+<span class="sd">    [list,str] : tumple</span>
+<span class="sd">        Кортеж содержащий список файлов и тип отчёта.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">str_args_files_help</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Имена csv-файлов с метриками видео на YouTube (может быть несколько)&quot;</span>
+    <span class="n">str_args_report_help</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Тип отчёта, отвечает за логикy расчётов&quot;</span>
+    <span class="n">str_prog_info</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cli приложение для обработки csv-файлов метрик YouTube видео&quot;</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">prog</span><span class="o">=</span><span class="n">str_prog_info</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-f&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;--files&#39;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="n">str_args_files_help</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="s1">&#39;--report&#39;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="n">str_args_report_help</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">choices</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="n">logic</span><span class="p">),</span>
+                        <span class="n">nargs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">str_info_argparse</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Извлекаю аргументы CLI&quot;</span>
+    <span class="n">str_debug_argparse</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">str_info_argparse</span> <span class="o">+</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot; -&gt; Список файлов: </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">files</span><span class="si">}</span><span class="s2">, Логика отчёта: </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">report</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_info_argparse</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_debug_argparse</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">args</span><span class="o">.</span><span class="n">files</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">report</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="checking_files_exists">
+<a class="viewcode-back" href="../main.html#main.checking_files_exists">[документация]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">checking_files_exists</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Проверяет существование файлов</span>
+
+<span class="sd">    Параметры</span>
+<span class="sd">    ---------</span>
+<span class="sd">    files : list</span>
+<span class="sd">        Список путей к файлам, для проверки существования</span>
+
+<span class="sd">    Возвращаемое значение</span>
+<span class="sd">    ---------------------</span>
+<span class="sd">    Bool</span>
+<span class="sd">        Возвращает False если хотя бы один из файлов не существует</span>
+<span class="sd">        Возвращает True  если все файлы существуют</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">missing_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">missing_files</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">missing_file</span> <span class="ow">in</span> <span class="n">missing_files</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Файлы отсутствует по пути </span><span class="si">{</span><span class="n">missing_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">str_info_files_exist</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Проверяю наличие файлов статистики&quot;</span>
+    <span class="n">str_debug_files_exist</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">str_info_files_exist</span> <span class="o">+</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot; -&gt; Файлы существуют: </span><span class="si">{</span><span class="n">files</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_info_files_exist</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_debug_files_exist</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="Report">
+<a class="viewcode-back" href="../main.html#main.Report">[документация]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Report</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Класс представляет интерфейс для работы с логикой отчетов.</span>
+
+<span class="sd">    Атрибуты</span>
+<span class="sd">    ---------</span>
+<span class="sd">    logic : Logic</span>
+<span class="sd">        Класс представляющий логику генерации отчетов</span>
+<span class="sd">    data: list</span>
+<span class="sd">        Обработанные в рамках генерации отчета данные.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logic</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logic</span> <span class="o">=</span> <span class="n">logic</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Report.report_data_from_files">
+<a class="viewcode-back" href="../main.html#main.Report.report_data_from_files">[документация]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">report_data_from_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logic</span><span class="o">.</span><span class="n">report_from_files</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Report.report_table">
+<a class="viewcode-back" href="../main.html#main.Report.report_table">[документация]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">report_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logic</span><span class="o">.</span><span class="n">report_table</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Report.report_text">
+<a class="viewcode-back" href="../main.html#main.Report.report_text">[документация]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">report_text</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;функция ещё не реализована&quot;</span><span class="p">)</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Logic">
+<a class="viewcode-back" href="../main.html#main.Logic">[документация]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Logic</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Logic.report_from_files">
+<a class="viewcode-back" href="../main.html#main.Logic.report_from_files">[документация]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">report_from_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Logic.report_table">
+<a class="viewcode-back" href="../main.html#main.Logic.report_table">[документация]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">report_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Clickbait">
+<a class="viewcode-back" href="../main.html#main.Clickbait">[документация]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Clickbait</span><span class="p">(</span><span class="n">Logic</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Класс работающий с информацией о видео  привлекающих внимание</span>
+
+<span class="sd">    ...</span>
+
+<span class="sd">    Атрибуты</span>
+<span class="sd">    --------</span>
+<span class="sd">    fieldtype : dict</span>
+<span class="sd">        словарь хранящий список полей для оценки</span>
+<span class="sd">        привлекательности видео, и соответствующие функции</span>
+<span class="sd">        для приведения значений полей к типу, подходящему для oценки.</span>
+<span class="sd">        Пример:</span>
+
+<span class="sd">        fieldtype = {&#39;title&#39;: int, &#39;ctr&#39;: float, &#39;retention_rate&#39;: float}</span>
+
+<span class="sd">    above_ctr: float</span>
+<span class="sd">            нижнее значение кликабельности</span>
+<span class="sd">    below_retention_rate: float</span>
+<span class="sd">            Верхнее значение удержания</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">above_ctr</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">below_retention_rate</span><span class="o">=</span><span class="mf">40.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fieldtype</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;ctr&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;retention_rate&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">above_ctr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">above_ctr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">below_retention_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">below_retention_rate</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_from_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Извлекает данные для анализа привлекательности видео</span>
+<span class="sd">        из csv файлов и возвращает список объединённых  данных</span>
+<span class="sd">        из нескольких файлов</span>
+
+<span class="sd">        Параметры</span>
+<span class="sd">        ---------</span>
+<span class="sd">        additional : list</span>
+<span class="sd">            список путей к csv файлам, для извлечения данных</span>
+
+<span class="sd">        Возвращаемое значение</span>
+<span class="sd">        ---------------------</span>
+<span class="sd">        union_list_of_video : list</span>
+<span class="sd">            список объединённых данных для анализа привлекательности</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: если часть файлов не обработана продолжить работу опционально</span>
+        <span class="n">union_list_of_video</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">list_of_video</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_csv_file</span><span class="p">(</span>
+                <span class="n">file_csv_patch</span><span class="o">=</span><span class="n">file</span><span class="p">,</span>
+                <span class="n">fieldtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fieldtype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">list_of_video</span><span class="p">:</span>
+                <span class="n">union_list_of_video</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">union_list_of_video</span> <span class="o">+</span> <span class="n">list_of_video</span>
+
+        <span class="n">str_info_filter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Записи извлечены из файлов: </span><span class="si">{</span><span class="n">files</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">str_debug_filter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">str_info_filter</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; -&gt; </span><span class="si">{</span><span class="n">union_list_of_video</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_info_filter</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_debug_filter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">union_list_of_video</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Выбирает информацию о видео</span>
+<span class="sd">        ,удовлетворяющих критериям привлекательности,</span>
+<span class="sd">        и возвращает в виде списка</span>
+
+<span class="sd">        Параметры</span>
+<span class="sd">        ---------</span>
+<span class="sd">        additional : list</span>
+<span class="sd">            список путей к csv файлам, для извлечения данных</span>
+
+<span class="sd">        Возвращаемое значение</span>
+<span class="sd">        ---------------------</span>
+<span class="sd">        fields : List</span>
+<span class="sd">            Список отфильтрованных данных</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filtered</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">data</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;ctr&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">above_ctr</span> <span class="ow">and</span>
+                    <span class="n">line</span><span class="p">[</span><span class="s2">&quot;retention_rate&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">below_retention_rate</span>
+                    <span class="p">]</span>
+
+        <span class="n">str_info_filter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Фильтрую записи огласно условию: &quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot; ctr &gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">above_ctr</span><span class="si">}</span><span class="s2"> retrntion_rate &lt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">below_retention_rate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">str_debug_filter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">str_info_filter</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; -&gt; </span><span class="si">{</span><span class="n">filtered</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_info_filter</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_debug_filter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">filtered</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sorted_data_decres_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Cортирует информацию о видео по убыванию csv:</span>
+
+<span class="sd">        Параметры</span>
+<span class="sd">        ---------</span>
+<span class="sd">        data: list</span>
+<span class="sd">            список строк для сортировки</span>
+
+<span class="sd">        sorted_by_csv_desc : List</span>
+<span class="sd">            Сортированный список</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sorted_by_csv_desc</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ctr&quot;</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">str_info_sorted</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Сортирую записи по убыванию ctr: &quot;</span>
+        <span class="n">str_debug_sorted</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">str_info_sorted</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; -&gt; </span><span class="si">{</span><span class="n">sorted_by_csv_desc</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_info_sorted</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_debug_sorted</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sorted_by_csv_desc</span>
+
+<div class="viewcode-block" id="Clickbait.report_from_files">
+<a class="viewcode-back" href="../main.html#main.Clickbait.report_from_files">[документация]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">report_from_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Подготавливает данные из файлов для генерации отчета</span>
+
+<span class="sd">        Параметры</span>
+<span class="sd">        ---------</span>
+<span class="sd">        data: files</span>
+<span class="sd">            список путей к файлам.</span>
+
+<span class="sd">        final_date : List</span>
+<span class="sd">            подготовленные данные</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_from_files</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+        <span class="n">filter_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+        <span class="n">final_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_data_decres_csv</span><span class="p">(</span><span class="n">filter_date</span><span class="p">)</span>
+        <span class="n">str_info_report</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Заканчиваю подготовку данных: &quot;</span>
+        <span class="n">str_debug_report</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">str_info_report</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; -&gt; </span><span class="si">{</span><span class="n">filter_date</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_info_report</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_debug_report</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">final_date</span></div>
+
+
+<div class="viewcode-block" id="Clickbait.report_table">
+<a class="viewcode-back" href="../main.html#main.Clickbait.report_table">[документация]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">report_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Подготавливает данные из файлов для генерации отчета</span>
+
+<span class="sd">        Параметры</span>
+<span class="sd">        ---------</span>
+<span class="sd">        data: files</span>
+<span class="sd">            список путей к файлам.</span>
+
+<span class="sd">        final_date : List</span>
+<span class="sd">            подготовленные данные</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">tabulate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span>
+                         <span class="n">headers</span><span class="o">=</span><span class="s1">&#39;keys&#39;</span><span class="p">,</span>
+                         <span class="n">tablefmt</span><span class="o">=</span><span class="s2">&quot;grid&quot;</span><span class="p">,</span>
+                         <span class="n">colalign</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">),</span>
+                         <span class="n">missingval</span><span class="o">=</span><span class="s2">&quot;N/A&quot;</span><span class="p">)</span>
+        <span class="n">str_info_table</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Подготавливаю отчет в виде таблицы: &quot;</span>
+        <span class="n">str_debug_table</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">str_info_table</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot; -&gt; </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_info_table</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_debug_table</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">table</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_csv_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_csv_patch</span><span class="p">,</span> <span class="n">fieldtype</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Читает из csv файла набор полей указанных в параметре fieldtype</span>
+<span class="sd">        и преобразует к необходимым типам.</span>
+
+<span class="sd">        Параметры</span>
+<span class="sd">        ---------</span>
+<span class="sd">        file_patch : str</span>
+
+<span class="sd">            Путь к файлу</span>
+
+<span class="sd">        fieldtype : dict</span>
+
+<span class="sd">            Словарь содержит набор полей для считывания из csv файла.</span>
+<span class="sd">            и соответствующие функции для преобразования типов.</span>
+
+<span class="sd">        Возвращаемое значение</span>
+<span class="sd">        ---------------------</span>
+<span class="sd">        list | none</span>
+<span class="sd">            Возвращает список словарей, </span>
+<span class="sd">            каждый словарь</span>
+<span class="sd">            представляет собой строку csv файла.</span>
+
+<span class="sd">            В случаею ошибки чтения none.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Реализовать более строгую обвязку для</span>
+        <span class="c1"># преобразования CSV файла в словарь.</span>
+        <span class="k">class</span><span class="w"> </span><span class="nc">CSVFieldNotFoundError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Запрошеное поле отсутствует в csv файле&quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+        <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">filter_and_type_set</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">fieldtype</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">v</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">is</span> <span class="nb">str</span> <span class="k">else</span> <span class="n">fieldtype</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="n">v</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">fieldtype</span>
+            <span class="p">}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">file_csv_patch</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">dictreader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="c1"># next(dictreader)</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">dictreader</span><span class="p">:</span>
+                    <span class="c1"># checking_field(line, fieldtype)</span>
+                    <span class="n">missing</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">fieldtype</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="p">(</span><span class="n">CSVFieldNotFoundError</span><span class="p">)</span>
+                    <span class="nb">list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filter_and_type_set</span><span class="p">(</span><span class="n">line</span><span class="p">,</span>  <span class="n">fieldtype</span><span class="p">))</span>
+            <span class="n">str_debug_read_csv</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Данные из файла csv (</span><span class="si">{</span><span class="n">file_csv_patch</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="nb">list</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">str_info_read_csv</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Читаю csv файл </span><span class="si">{</span><span class="n">file_csv_patch</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_info_read_csv</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_debug_read_csv</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">list</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="n">str_warning_not_found</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;csv файл не найден! по пути</span><span class="si">{</span>
+<span class="w">                </span><span class="n">file_csv_patch</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_warning_not_found</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">CSVFieldNotFoundError</span><span class="p">:</span>
+            <span class="n">str_warning_not_found</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;csv поле </span><span class="si">{</span>
+<span class="w">                </span><span class="n">missing</span><span class="si">}</span><span class="s2"> не найдено в файле </span><span class="si">{</span><span class="n">file_csv_patch</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_warning_not_found</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">errortext</span><span class="p">:</span>
+            <span class="n">str_warning_valueerror</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Ошибка преобразования поля в новый тип: </span><span class="si">{</span>
+<span class="w">                    </span><span class="n">errortext</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="n">str_warning_valueerror</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
 
 
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../main.html#main.main">[документация]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="n">setting</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;testwork.log&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">setting</span><span class="o">.</span><span class="n">log_level</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">setting</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span>
-                        <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;A DEBUG Message&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;An INFO&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;A WARNING&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;An ERROR&quot;</span><span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;A message of CRITICAL severity&quot;</span><span class="p">)</span>
-    <span class="n">inc</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hello from workmate-testwork!&quot;</span><span class="p">)</span></div>
+    <span class="n">input_files</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">selected_logic</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">log_file</span><span class="o">=</span><span class="s1">&#39;newlogfile.log&#39;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">log_level</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">log_file</span><span class="p">,</span>
+                        <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(funcName)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logic_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;Clickbait&quot;</span><span class="p">:</span> <span class="n">Clickbait</span><span class="p">(</span><span class="n">above_ctr</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">below_retention_rate</span><span class="o">=</span><span class="mi">40</span><span class="p">),</span>
+        <span class="s2">&quot;Clickbait1&quot;</span><span class="p">:</span> <span class="n">Clickbait</span><span class="p">(</span><span class="n">above_ctr</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">below_retention_rate</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Запуск&quot;</span><span class="p">)</span>
 
+    <span class="n">input_files</span><span class="p">,</span> <span class="n">selected_logic</span> <span class="o">=</span> <span class="n">argparsess</span><span class="p">(</span><span class="n">logic</span><span class="o">=</span><span class="n">logic_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="c1"># print(input_files)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">checking_files_exists</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">input_files</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Утилита завершает работу!&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
+    <span class="n">report_table</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span><span class="n">Report</span><span class="p">(</span><span class="n">logic</span><span class="o">=</span><span class="n">logic_dict</span><span class="p">[</span><span class="n">selected_logic</span><span class="p">])</span>
+                         <span class="o">.</span><span class="n">report_data_from_files</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">input_files</span><span class="p">)</span>
+                         <span class="o">.</span><span class="n">report_table</span><span class="p">())</span>
 
-<div class="viewcode-block" id="inc">
-<a class="viewcode-back" href="../main.html#main.inc">[документация]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">inc</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">6</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">x</span></div>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Таблица: Кликбейтные видео:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">report_table</span><span class="p">)</span></div>
 
 
 
